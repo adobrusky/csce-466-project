@@ -8,12 +8,14 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "buefy": "^0.9.22",
     "vue": "^2.6.11",
     "vue-router": "^3.1.6"
   },
   "devDependencies": {
     "@vue/cli-plugin-eslint": "~4.3.1",
     "@vue/cli-plugin-router": "~4.3.1",
+    "@vue/cli-plugin-unit-jest": "^5.0.8",
     "@vue/cli-service": "~4.3.1",
     "@vue/eslint-config-standard": "^5.1.2",
     "eslint": "^6.7.2",
