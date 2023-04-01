@@ -1,4 +1,4 @@
-# Coffee Shop API Project
+# Warehouse API Project
 
 ## Installation
 
