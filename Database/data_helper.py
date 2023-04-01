@@ -1,6 +1,6 @@
 from Database.database import connect_to_database
 import re
-from Database.data_models import Customer, Product, Transaction, ProductTransaction
+from Database.data_models import Customer, Inventory, Order, InventoryOrder
 
 class DataHelper:
   def __init__(self, authority, port, database_name, username, password):
@@ -13,7 +13,7 @@ class DataHelper:
   def delta_patch(self, existing, new):
     for attr, value in new.__dict__.items():
       if attr != "id" and attr != "_sa_instance_state":
-        if (type(existing).__name__ == "Transaction" and attr == "products"):
+        if (type(existing).__name__ == "Order" and attr == "inventory"):
           continue
         else:
           setattr(existing, attr, value)
@@ -75,7 +75,7 @@ class DataHelper:
     invalid = []
     for filter in search_model.filters:
       # Operator validation
-      if filter.operator != "equals" and (filter.operator != "contains any" and class_name == Transaction):
+      if filter.operator != "equals" and (filter.operator != "contains any" and class_name == Order):
         raise KeyError(class_name.__name__ + " search doesn't support '" + filter.operator + "' operator.")
       valid = False
       for attr in class_name.__dict__.keys():
@@ -83,23 +83,23 @@ class DataHelper:
           if filter.field == attr:
             results = set()
             valid = True
-            # Search logic specifically for searching by Transaction products
-            if class_name == Transaction and attr == "products":
-              for product in filter.value:
-                product_transactions = self.session.query(ProductTransaction).filter(ProductTransaction.product_id == product)
-                if product_transactions is not None:
-                  for product_transaction in product_transactions:
-                    results.add(product_transaction.transaction_id)
+            # Search logic specifically for searching by Order inventory
+            if class_name == Order and attr == "inventory":
+              for inventory in filter.value:
+                inventory_orders = self.session.query(InventoryOrder).filter(InventoryOrder.inventory_id == inventory)
+                if inventory_orders is not None:
+                  for inventory_order in inventory_orders:
+                    results.add(inventory_order.order_id)
               if filter.operator == "contains any":
                 ids = self.combine_search_results(search_model.and_or, results, ids)
               elif filter.operator == "equals":
-                # At this point we have all of the transactions that contains all of the products. Now we need to remove the ones that don't contain EXACTLY ALL of the products
-                transaction_count = {}
-                for transaction_id in results:
-                  transaction_count[transaction_id] = self.session.query(ProductTransaction).filter(ProductTransaction.transaction_id == transaction_id).count()
-                for transaction_id, count in transaction_count.items():
+                # At this point we have all of the orders that contains all of the inventory. Now we need to remove the ones that don't contain EXACTLY ALL of the inventory
+                order_count = {}
+                for order_id in results:
+                  order_count[order_id] = self.session.query(InventoryOrder).filter(InventoryOrder.order_id == order_id).count()
+                for order_id, count in order_count.items():
                   if count != len(filter.value):
-                    results.remove(transaction_id)
+                    results.remove(order_id)
                 ids = self.combine_search_results(search_model.and_or, results, ids)
             else:
               # Search logic for every other case
@@ -122,29 +122,29 @@ class DataHelper:
       customer = Customer(success=False, message="A customer with customer ID " + str(customer_id) + " does not exist.")
     return customer
 
-  def products_getone(self, product_id):
-    product = self.session.query(Product).filter(Product.id == product_id).first()
-    if product != None:
-      product.success = True 
+  def inventory_getone(self, inventory_id):
+    inventory = self.session.query(Inventory).filter(Inventory.id == inventory_id).first()
+    if inventory != None:
+      inventory.success = True 
     else:
-      product = Product(success=False, message="A product with product ID " + str(product_id) + " does not exist.")
-    return product
+      inventory = Inventory(success=False, message="A inventory with inventory ID " + str(inventory_id) + " does not exist.")
+    return inventory
 
-  def product_transaction_getone(self, transaction_id, product_id):
-    product_transaction = self.session.query(ProductTransaction).filter(ProductTransaction.transaction_id == transaction_id).filter(ProductTransaction.product_id == product_id).first() 
-    if product_transaction != None:
-      product_transaction.success = True
+  def inventory_order_getone(self, order_id, inventory_id):
+    inventory_order = self.session.query(InventoryOrder).filter(InventoryOrder.order_id == order_id).filter(InventoryOrder.inventory_id == inventory_id).first() 
+    if inventory_order != None:
+      inventory_order.success = True
     else:
-      product_transaction = ProductTransaction(success=False, message="A product ID of " + str(product_id) + " does not exist on transaction " + str(transaction_id) + ".") 
-    return product_transaction
+      inventory_order = InventoryOrder(success=False, message="A inventory ID of " + str(inventory_id) + " does not exist on order " + str(order_id) + ".") 
+    return inventory_order
 
-  def transactions_getone(self, transaction_id):
-    transaction = self.session.query(Transaction).filter(Transaction.id == transaction_id).first()
-    if transaction != None:
-      transaction.success = True
+  def orders_getone(self, order_id):
+    order = self.session.query(Order).filter(Order.id == order_id).first()
+    if order != None:
+      order.success = True
     else:
-      transaction = Transaction(success=False, message="A transaction with transaction ID " + str(transaction_id) + " does not exist.")
-    return transaction
+      order = Order(success=False, message="A order with order ID " + str(order_id) + " does not exist.")
+    return order
 
   #endregion
 
@@ -180,76 +180,76 @@ class DataHelper:
       customer.message = str(ex)
       return customer
 
-  def products_save(self, product):
+  def inventory_save(self, inventory):
     try:
       required_fields = ["price", "name"]
-      missing = self.validate_required(product, required_fields)
+      missing = self.validate_required(inventory, required_fields)
       if len(missing) > 0:
         raise ValueError("Missing required fields: " + ", ".join(missing) + ".")
       # If an addition
-      if product.id is None:
-        self.session.add(product)
+      if inventory.id is None:
+        self.session.add(inventory)
       else:
         # If an update
-        existing = self.products_getone(product.id)
-        self.delta_patch(existing, product)
+        existing = self.inventory_getone(inventory.id)
+        self.delta_patch(existing, inventory)
       self.session.commit()
-      product.success = True
-      return product
+      inventory.success = True
+      return inventory
     except Exception as ex:
-      product.success = False
-      product.message = str(ex)
-      return product
+      inventory.success = False
+      inventory.message = str(ex)
+      return inventory
 
-  def product_transaction_save(self, product_transaction):
-    if not self.product_transaction_getone(product_transaction.transaction_id, product_transaction.product_id).success:
-      self.session.add(product_transaction)
+  def inventory_order_save(self, inventory_order):
+    if not self.inventory_order_getone(inventory_order.order_id, inventory_order.inventory_id).success:
+      self.session.add(inventory_order)
     self.session.commit()
-    product_transaction = self.product_transaction_getone(product_transaction.transaction_id, product_transaction.product_id)
-    if product_transaction.success:
-      product_transaction.success = True
+    inventory_order = self.inventory_order_getone(inventory_order.order_id, inventory_order.inventory_id)
+    if inventory_order.success:
+      inventory_order.success = True
     else:
-      product_transaction.success = False
-    return product_transaction
+      inventory_order.success = False
+    return inventory_order
 
-  def transactions_save(self, transaction, products):
+  def orders_save(self, order, inventory):
     try:
       required_fields = ["customer_id", "date"]
       invalid = []
-      missing = self.validate_required(transaction, required_fields)
+      missing = self.validate_required(order, required_fields)
       if len(missing) > 0:
         raise ValueError("Missing required fields: " + ", ".join(missing) + ".")
-      if not self.customers_getone(transaction.customer_id).success:
-        invalid.append("A customer with customer ID of " + str(transaction.customer_id) + " does not exist.")
+      if not self.customers_getone(order.customer_id).success:
+        invalid.append("A customer with customer ID of " + str(order.customer_id) + " does not exist.")
       if len(invalid) > 0:
         raise ValueError(" ".join(invalid))
       # If an addition
-      if transaction.id is None:
-        self.session.add(transaction)
+      if order.id is None:
+        self.session.add(order)
       else:
         # If an update
-        existing = self.transactions_getone(transaction.id)
-        self.delta_patch(existing, transaction)
+        existing = self.orders_getone(order.id)
+        self.delta_patch(existing, order)
       self.session.commit()
-      transaction.success = True
-      # If the transaction save was successful then save all the products
-      for existing_product in self.get_products_by_transaction_id(transaction.id):
-        self.product_transactions_delete(transaction.id, existing_product.id)
-      if products is not None:
-        for product_dict in products:
-          product_id = product_dict.get("product_id")
-          quantity = product_dict.get("quantity")
-          # Product/quantity validation
-          if product_id is None:
-            raise ValueError("Each product in list of 'products' requires a 'product_id'.")
+      order.success = True
+      # If the order save was successful then save all the inventory
+      for existing_inventory in self.get_inventory_by_order_id(order.id):
+        self.inventory_orders_delete(order.id, existing_inventory.id)
+      if inventory is not None:
+        for inventory_dict in inventory:
+          inventory_id = inventory_dict.get("inventory_id")
+          quantity = inventory_dict.get("quantity")
+          # Inventory/quantity validation
+          if inventory_id is None:
+            raise ValueError("Each inventory in list of 'inventory' requires a 'inventory_id'.")
           if quantity is None:
-            raise ValueError("Each product in list of 'products' requires a 'quantity'.")
-          self.product_transaction_save(ProductTransaction(transaction_id=transaction.id, product_id=product_id, quantity=quantity))
-      return transaction
+            raise ValueError("Each inventory in list of 'inventory' requires a 'quantity'.")
+          self.inventory_order_save(InventoryOrder(order_id=order.id, inventory_id=inventory_id, quantity=quantity))
+      return order
     except ValueError as ex:
-      transaction.success = False
-      transaction.message = str(ex)
-      return transaction
+      order.success = False
+      order.message = str(ex)
+      return order
 
   #endregion
 
@@ -258,36 +258,36 @@ class DataHelper:
   def get_customers(self):
     return self.session.query(Customer)
 
-  def get_products(self):
-    return self.session.query(Product)
+  def get_inventory(self):
+    return self.session.query(Inventory)
 
-  def get_transactions(self):
-    return self.session.query(Transaction)
+  def get_orders(self):
+    return self.session.query(Order)
 
-  def get_products_by_transaction_id(self, transaction_id):
-    lst_products = []
-    for product_transaction in self.get_product_transactions_by_transaction_id(transaction_id):
-      lst_products.append(self.products_getone(product_transaction.product_id))
-    return lst_products
+  def get_inventory_by_order_id(self, order_id):
+    lst_inventory = []
+    for inventory_order in self.get_inventory_orders_by_order_id(order_id):
+      lst_inventory.append(self.inventory_getone(inventory_order.inventory_id))
+    return lst_inventory
 
-  def get_product_transactions_by_transaction_id(self, transaction_id):
-    return self.session.query(ProductTransaction).filter(ProductTransaction.transaction_id == transaction_id)
+  def get_inventory_orders_by_order_id(self, order_id):
+    return self.session.query(InventoryOrder).filter(InventoryOrder.order_id == order_id)
 
   #endregion
 
   #region Delete methods
 
-  def products_delete(self, product_id):
-    product = self.products_getone(product_id)
-    if product.success:
-      self.session.query(Product).filter(Product.id == product_id).delete()
+  def inventory_delete(self, inventory_id):
+    inventory = self.inventory_getone(inventory_id)
+    if inventory.success:
+      self.session.query(Inventory).filter(Inventory.id == inventory_id).delete()
       self.session.commit()
     else:
-      return Product(success=False, message=product.message)
-    if not self.products_getone(product_id).success:
-      return Product(success=True)
+      return Inventory(success=False, message=inventory.message)
+    if not self.inventory_getone(inventory_id).success:
+      return Inventory(success=True)
     else:
-      return Product(success=False, message="Deletion failed.")
+      return Inventory(success=False, message="Deletion failed.")
 
   def customers_delete(self, customer_id):
     customer = self.customers_getone(customer_id)
@@ -301,43 +301,43 @@ class DataHelper:
     else:
       return Customer(success=False, message="Deletion failed.")
 
-  def transactions_delete(self, transaction_id):
-    transaction = self.transactions_getone(transaction_id)
-    if transaction.success:
-      self.session.query(Transaction).filter(Transaction.id == transaction_id).delete()
+  def orders_delete(self, order_id):
+    order = self.orders_getone(order_id)
+    if order.success:
+      self.session.query(Order).filter(Order.id == order_id).delete()
       self.session.commit()
     else:
-      return Transaction(success=False, message=transaction.message)
-    if not self.transactions_getone(transaction_id).success:
-      return Transaction(success=True)
+      return Order(success=False, message=order.message)
+    if not self.orders_getone(order_id).success:
+      return Order(success=True)
     else:
-      return Transaction(success=False, message="Deletion failed.")
+      return Order(success=False, message="Deletion failed.")
 
-  def product_transactions_delete(self, transaction_id, product_id):
-    product_transaction = self.product_transaction_getone(transaction_id, product_id)
-    if product_transaction.success:
-      self.session.query(ProductTransaction).filter(ProductTransaction.transaction_id == transaction_id).filter(ProductTransaction.product_id == product_id).delete()
+  def inventory_orders_delete(self, order_id, inventory_id):
+    inventory_order = self.inventory_order_getone(order_id, inventory_id)
+    if inventory_order.success:
+      self.session.query(InventoryOrder).filter(InventoryOrder.order_id == order_id).filter(InventoryOrder.inventory_id == inventory_id).delete()
       self.session.commit()
     else:
-      return ProductTransaction(success=False, message=product_transaction.message)
-    if not self.transactions_getone(transaction_id).success:
-      return ProductTransaction(success=True)
+      return InventoryOrder(success=False, message=inventory_order.message)
+    if not self.orders_getone(order_id).success:
+      return InventoryOrder(success=True)
     else:
-      return ProductTransaction(success=False, message="Deletion failed.")
+      return InventoryOrder(success=False, message="Deletion failed.")
 
   #endregion
 
   #region Search methods
 
-  def products_search(self, search):
+  def inventory_search(self, search):
     try:
-      product_ids = self.search(Product, search)
-      products = []
-      for id in product_ids:
-        products.append(self.products_getone(id))
-      return products
+      inventory_ids = self.search(Inventory, search)
+      inventory = []
+      for id in inventory_ids:
+        inventory.append(self.inventory_getone(id))
+      return inventory
     except KeyError as ex:
-      return [Product(success=False, message=str(ex).strip("\""))]
+      return [Inventory(success=False, message=str(ex).strip("\""))]
 
   def customers_search(self, search):
     try:
@@ -349,14 +349,14 @@ class DataHelper:
     except KeyError as ex:
       return [Customer(success=False, message=str(ex).strip("\""))]
 
-  def transactions_search(self, search):
+  def orders_search(self, search):
     try:
-      transaction_ids = self.search(Transaction, search)
-      transactions = []
-      for id in transaction_ids:
-        transactions.append(self.transactions_getone(id))
-      return transactions
+      order_ids = self.search(Order, search)
+      orders = []
+      for id in order_ids:
+        orders.append(self.orders_getone(id))
+      return orders
     except KeyError as ex:
-      return [Transaction(success=False, message=str(ex).strip("\""))]
+      return [Order(success=False, message=str(ex).strip("\""))]
 
   #endregion

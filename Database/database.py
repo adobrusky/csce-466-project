@@ -8,11 +8,11 @@ Persisted = declarative_base()
 
 def connect_to_database(authority, port, database_name, username, password):
     try:
-        url = StoreDatabase.construct_mysql_url(authority, port, database_name,
+        url = WarehouseDatabase.construct_mysql_url(authority, port, database_name,
                                                         username, password)
-        store_database = StoreDatabase(url)
-        store_database.ensure_tables_exist()
-        return store_database.create_session()
+        warehouse_database = WarehouseDatabase(url)
+        warehouse_database.ensure_tables_exist()
+        return warehouse_database.create_session()
     except InterfaceError:
         print(f'Cannot connect to database! Did you type the authority/port correctly?\nAuthority: {authority}, Port: {port}', file=stderr)
         exit(1)
@@ -26,7 +26,7 @@ def connect_to_database(authority, port, database_name, username, password):
         print(f'Cause: {exception}', file=stderr)
         exit(1)
 
-class StoreDatabase(object):
+class WarehouseDatabase(object):
     @staticmethod
     def construct_mysql_url(authority, port, database, username, password):
         return f'mysql+mysqlconnector://{username}:{password}@{authority}:{port}/{database}'
