@@ -4,6 +4,7 @@ from Database.data_models import Customer, Product, Transaction, ProductTransact
 
 class DataHelper:
   def __init__(self, authority, port, database_name, username, password):
+    print(authority, port, database_name, username, password)
     self.session = connect_to_database(authority, port, database_name, username, password)
   
   def close(self):

@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sys import stderr
 from sqlalchemy.exc import SQLAlchemyError, ProgrammingError, InterfaceError
+import urllib
 
 Persisted = declarative_base()
 
@@ -13,8 +14,8 @@ def connect_to_database(authority, port, database_name, username, password):
         store_database = StoreDatabase(url)
         store_database.ensure_tables_exist()
         return store_database.create_session()
-    except InterfaceError:
-        print(f'Cannot connect to database! Did you type the authority/port correctly?\nAuthority: {authority}, Port: {port}', file=stderr)
+    except InterfaceError as ex:
+        print(f'Cannot connect to database! Did you type the authority/port correctly?\nAuthority: {authority}, Port: {port}\nCause: {ex}', file=stderr)
         exit(1)
     except ProgrammingError:
         print(f'Unknown database name! Make sure to create a database named "{database_name}".\nIf you typed the database name correctly then double check your credentials!', file=stderr)
@@ -29,6 +30,7 @@ def connect_to_database(authority, port, database_name, username, password):
 class StoreDatabase(object):
     @staticmethod
     def construct_mysql_url(authority, port, database, username, password):
+        password = urllib.parse.quote_plus(password)
         return f'mysql+mysqlconnector://{username}:{password}@{authority}:{port}/{database}'
 
     @staticmethod

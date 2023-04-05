@@ -4,6 +4,10 @@ from datetime import date
 from Database.data_helper import DataHelper
 from Database.data_models import Transaction, Product, Customer
 from Database.search_models import Filter, Search
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # This method prevents the transaction date from being formatted other than UTC
 class CustomJSONEncoder(JSONEncoder):
@@ -22,7 +26,9 @@ class CustomJSONEncoder(JSONEncoder):
 app = Flask(__name__)
 app.json_encoder = CustomJSONEncoder
 app.config["DEBUG"] = True
-data_helper = DataHelper('localhost', '3306', 'store', 'root', '')
+
+
+data_helper = DataHelper(os.environ.get('DB_HOST'), os.environ.get('DB_PORT', 3306), os.environ.get('DB_DATABASE', 'store'), os.environ.get('DB_USER'), os.environ.get('DB_PASS'))
 
 # Serializes an object (product, person, etc.) into a dictionary
 def serialize(object, class_name):
