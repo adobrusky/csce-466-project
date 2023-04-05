@@ -13,39 +13,39 @@ class Customer(Persisted):
     postal_code = Column(String(256), nullable=False)
     country = Column(String(256), nullable=False)
     email = Column(String(256), nullable=False)
-    transaction = relationship('Transaction', back_populates='customer')
+    order = relationship('Order', back_populates='customer')
     success = Column(Boolean)
     message = Column(String(256))
 
 
-class Product(Persisted):
-    __tablename__ = 'products'
+class Inventory(Persisted):
+    __tablename__ = 'inventory'
     id = Column(Integer, primary_key=True)
     name = Column(String(256), nullable=False)
     price = Column(Float, nullable=False)
-    product_transactions = relationship('ProductTransaction', uselist=True, back_populates='product')
-    transactions = relationship('Transaction', uselist=True, secondary='product_transactions', overlaps='product_transactions')
+    inventory_orders = relationship('InventoryOrder', uselist=True, back_populates='inventory')
+    orders = relationship('Order', uselist=True, secondary='inventory_orders', overlaps='inventory_orders')
     success = Column(Boolean)
     message = Column(String(256))
 
 
-class Transaction(Persisted):
-    __tablename__ = 'transactions'
+class Order(Persisted):
+    __tablename__ = 'orders'
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer, ForeignKey('customers.id', ondelete='CASCADE'), nullable=False)
     date = Column(Date, nullable=False, server_default=func.now())
-    customer = relationship('Customer', back_populates='transaction')
-    product_transactions = relationship('ProductTransaction', uselist=True, back_populates='transaction', overlaps='transactions')
-    products = relationship('Product', uselist=True, secondary='product_transactions', overlaps='product_transactions,transactions')
+    customer = relationship('Customer', back_populates='order')
+    inventory_orders = relationship('InventoryOrder', uselist=True, back_populates='order', overlaps='orders')
+    inventory = relationship('Inventory', uselist=True, secondary='inventory_orders', overlaps='inventory_orders,orders')
     success = Column(Boolean)
     message = Column(String(256))
 
-class ProductTransaction(Persisted):
-    __tablename__ = 'product_transactions'
-    product_id = Column(Integer, ForeignKey('products.id', ondelete='CASCADE'), primary_key=True)
-    transaction_id = Column(Integer, ForeignKey('transactions.id', ondelete='CASCADE'), primary_key=True)
+class InventoryOrder(Persisted):
+    __tablename__ = 'inventory_orders'
+    inventory_id = Column(Integer, ForeignKey('inventory.id', ondelete='CASCADE'), primary_key=True)
+    order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'), primary_key=True)
     quantity = Column(Integer, nullable=False)
-    product = relationship('Product', back_populates='product_transactions', overlaps='products,transactions')
-    transaction = relationship('Transaction', back_populates='product_transactions', overlaps='products,transactions')
+    inventory = relationship('Inventory', back_populates='inventory_orders', overlaps='inventory,orders')
+    order = relationship('Order', back_populates='inventory_orders', overlaps='inventory,orders')
     success = Column(Boolean)
     message = Column(String(256))

@@ -2,14 +2,14 @@ from flask import jsonify, request, Flask
 from flask.json import JSONEncoder
 from datetime import date
 from Database.data_helper import DataHelper
-from Database.data_models import Transaction, Product, Customer
+from Database.data_models import Order, Inventory, Customer
 from Database.search_models import Filter, Search
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
-# This method prevents the transaction date from being formatted other than UTC
+# This method prevents the order date from being formatted other than UTC
 class CustomJSONEncoder(JSONEncoder):
   def default(self, obj):
     try:
@@ -27,20 +27,19 @@ app = Flask(__name__)
 app.json_encoder = CustomJSONEncoder
 app.config["DEBUG"] = True
 
+data_helper = DataHelper(os.environ.get('DB_HOST'), os.environ.get('DB_PORT', 3306), os.environ.get('DB_DATABASE', 'warehouse'), os.environ.get('DB_USER', 'root'), os.environ.get('DB_PASS'))
 
-data_helper = DataHelper(os.environ.get('DB_HOST'), os.environ.get('DB_PORT', 3306), os.environ.get('DB_DATABASE', 'store'), os.environ.get('DB_USER'), os.environ.get('DB_PASS'))
-
-# Serializes an object (product, person, etc.) into a dictionary
+# Serializes an object (inventory, person, etc.) into a dictionary
 def serialize(object, class_name):
   dictionary = {field.name: getattr(object, field.name) for field in object.__table__.columns}
-  # Transactions need special logic to pull in the products
-  if class_name == Transaction:
-    lst_products = []
-    transaction_id = dictionary.get("id")
-    for product_transaction in data_helper.get_product_transactions_by_transaction_id(transaction_id):
-      product_dict = {"product_id":product_transaction.product_id, "quantity":product_transaction.quantity}
-      lst_products.append(product_dict)
-    dictionary['products'] = lst_products
+  # Orders need special logic to pull in the inventory
+  if class_name == Order:
+    lst_inventory = []
+    order_id = dictionary.get("id")
+    for inventory_order in data_helper.get_inventory_orders_by_order_id(order_id):
+      inventory_dict = {"inventory_id":inventory_order.inventory_id, "quantity":inventory_order.quantity}
+      lst_inventory.append(inventory_dict)
+    dictionary['inventory'] = lst_inventory
   return dictionary
 
 
@@ -49,8 +48,8 @@ def deserialize(dictionary, class_name):
   if class_name != Search:
     object = class_name()
     for key in dictionary:
-      # This throws off the add logic if transaction has this
-      if not (class_name == Transaction and key == "products"):
+      # This throws off the add logic if order has this
+      if not (class_name == Order and key == "inventory"):
         setattr(object, key, dictionary[key])
     return object
   else:
@@ -81,35 +80,35 @@ def customers_all():
     results.append(serialize(customer, Customer))
   return jsonify(results)
 
-@app.route('/products', methods=['GET'])
-def products_all():
-  lst_products = data_helper.get_products()
+@app.route('/inventory', methods=['GET'])
+def inventory_all():
+  lst_inventory = data_helper.get_inventory()
   results = []
-  for product in lst_products:
-    results.append(serialize(product, Product))
+  for inventory in lst_inventory:
+    results.append(serialize(inventory, Inventory))
   return jsonify(results)
 
-@app.route('/transactions', methods=['GET'])
-def transactions_all():
-  lst_transactions = data_helper.get_transactions()
+@app.route('/orders', methods=['GET'])
+def orders_all():
+  lst_orders = data_helper.get_orders()
   results = []
-  for transaction in lst_transactions:
-    transaction_dict = serialize(transaction, Transaction)
-    results.append(transaction_dict)
+  for order in lst_orders:
+    order_dict = serialize(order, Order)
+    results.append(order_dict)
   return jsonify(results)
 
 #endregion
 
 #region Get one endpoints
 
-@app.route('/transactions/<id>', methods=['GET'])
-def transactions_getone(id):
+@app.route('/orders/<id>', methods=['GET'])
+def orders_getone(id):
   if id is not None:
-    transaction = data_helper.transactions_getone(id)
-    transaction_dict = serialize(transaction, Transaction)
-    return jsonify(transaction_dict)
+    order = data_helper.orders_getone(id)
+    order_dict = serialize(order, Order)
+    return jsonify(order_dict)
   else:
-    return jsonify(serialize(Transaction(success=False, message="No transaction ID provided")))
+    return jsonify(serialize(Order(success=False, message="No order ID provided")))
 
 @app.route('/customers/<id>', methods=['GET'])
 def customers_getone(id):
@@ -120,25 +119,25 @@ def customers_getone(id):
   else:
     return jsonify(serialize(Customer(success=False, message="No customer ID provided")))
 
-@app.route('/products/<id>', methods=['GET'])
-def products_getone(id):
+@app.route('/inventory/<id>', methods=['GET'])
+def inventory_getone(id):
   if id is not None:
-    product = data_helper.products_getone(id)
-    product_dict = serialize(product, Product)
-    return jsonify(product_dict)
+    inventory = data_helper.inventory_getone(id)
+    inventory_dict = serialize(inventory, Inventory)
+    return jsonify(inventory_dict)
   else:
-    return jsonify(serialize(Product(success=False, message="No product ID provided")))
+    return jsonify(serialize(Inventory(success=False, message="No inventory ID provided")))
 
 #endregion
 
 #region Save (create/update) endpoints
 
-@app.route('/transactions', methods=['POST'])
-def transactions_save():
-  transaction = deserialize(request.json, Transaction)
-  transaction = data_helper.transactions_save(transaction, request.json.get('products'))
-  transaction_dict = serialize(transaction, Transaction)
-  return jsonify(transaction_dict)
+@app.route('/orders', methods=['POST'])
+def orders_save():
+  order = deserialize(request.json, Order)
+  order = data_helper.orders_save(order, request.json.get('inventory'))
+  order_dict = serialize(order, Order)
+  return jsonify(order_dict)
 
 @app.route('/customers', methods=['POST'])
 def customers_save():
@@ -147,12 +146,12 @@ def customers_save():
   customer_dict = serialize(customer, Customer)
   return jsonify(customer_dict)
 
-@app.route('/products', methods=['POST'])
-def products_save():
-  product = deserialize(request.json, Product)
-  product = data_helper.products_save(product)
-  product_dict = serialize(product, Product)
-  return jsonify(product_dict)
+@app.route('/inventory', methods=['POST'])
+def inventory_save():
+  inventory = deserialize(request.json, Inventory)
+  inventory = data_helper.inventory_save(inventory)
+  inventory_dict = serialize(inventory, Inventory)
+  return jsonify(inventory_dict)
 
 #endregion
 
@@ -167,37 +166,37 @@ def customers_delete(id):
   else:
     return jsonify(serialize(Customer(success=False, message="No customer ID provided")))
 
-@app.route('/products/<id>', methods=['DELETE'])
-def products_delete(id):
+@app.route('/inventory/<id>', methods=['DELETE'])
+def inventory_delete(id):
   if id is not None:
-    product = data_helper.products_delete(id)
-    product_dict = serialize(product, Product)
-    return jsonify(product_dict)
+    inventory = data_helper.inventory_delete(id)
+    inventory_dict = serialize(inventory, Inventory)
+    return jsonify(inventory_dict)
   else:
-    return jsonify(serialize(Product(success=False, message="No product ID provided")))
+    return jsonify(serialize(Inventory(success=False, message="No inventory ID provided")))
 
-@app.route('/transactions/<id>', methods=['DELETE'])
-def transactions_delete(id):
+@app.route('/orders/<id>', methods=['DELETE'])
+def orders_delete(id):
   if id is not None:
-    transaction = data_helper.transactions_delete(id)
-    transaction_dict = serialize(transaction, Transaction)
-    return jsonify(transaction_dict)
+    order = data_helper.orders_delete(id)
+    order_dict = serialize(order, Order)
+    return jsonify(order_dict)
   else:
-    return jsonify(serialize(Transaction(success=False, message="No transaction ID provided")))
+    return jsonify(serialize(Order(success=False, message="No order ID provided")))
 
 #endregion
 
 #region Search endpoints
 
-@app.route('/products/search', methods=['POST'])
-def products_search():
+@app.route('/inventory/search', methods=['POST'])
+def inventory_search():
   search = deserialize(request.json, Search)
   if not search.success:
-    return jsonify(serialize(Product(success=False, message=search.message), Product))
-  products = data_helper.products_search(search)
+    return jsonify(serialize(Inventory(success=False, message=search.message), Inventory))
+  inventory = data_helper.inventory_search(search)
   results = []
-  for product in products:
-    results.append(serialize(product, Product))
+  for inventory in inventory:
+    results.append(serialize(inventory, Inventory))
   return jsonify(results)
 
 @app.route('/customers/search', methods=['POST'])
@@ -211,15 +210,15 @@ def customers_search():
     results.append(serialize(customer, Customer))
   return jsonify(results)
 
-@app.route('/transactions/search', methods=['POST'])
-def transactions_search():
+@app.route('/orders/search', methods=['POST'])
+def orders_search():
   search = deserialize(request.json, Search)
   if not search.success:
-    return jsonify(serialize(Transaction(success=False, message=search.message), Transaction))
-  transactions = data_helper.transactions_search(search)
+    return jsonify(serialize(Order(success=False, message=search.message), Order))
+  orders = data_helper.orders_search(search)
   results = []
-  for transaction in transactions:
-    results.append(serialize(transaction, Transaction))
+  for order in orders:
+    results.append(serialize(order, Order))
   return jsonify(results)
 
 #endregion
