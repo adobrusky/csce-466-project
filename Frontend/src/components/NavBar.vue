@@ -21,9 +21,9 @@
           <a class="button is-primary">
             <strong>Sign up</strong>
           </a>
-          <router- class="button is-light">
+          <router-link class="button is-light" to="/login">
             Log in
-          </router->
+          </router-link>
         </div>
       </div>
     </div>
