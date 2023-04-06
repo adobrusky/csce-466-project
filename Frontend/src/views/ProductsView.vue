@@ -19,23 +19,23 @@
       </tbody>
     </table>
   </div>
-  </template>
+</template>
 
-  <script setup>
-  import { ref, onBeforeMount } from 'vue'
+<script setup>
+import { ref, onBeforeMount } from 'vue'
 
-  let products = ref()
+let products = ref()
 
-  async function getProducts() {
-    const response = await fetch("/api/inventory")
-    if(response.ok) {
-      const json = await response.json()
-      products.value = json
-    }
+async function getProducts() {
+  const response = await fetch("/api/inventory")
+  if(response.ok) {
+    const json = await response.json()
+    products.value = json
   }
+}
 
-  onBeforeMount(() => {
-    getProducts()
-  })
+onBeforeMount(() => {
+  getProducts()
+})
 
-  </script>
+</script>

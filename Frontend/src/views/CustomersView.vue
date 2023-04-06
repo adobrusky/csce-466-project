@@ -55,7 +55,6 @@
   const filteredCustomers = computed(() => {
     const query = searchQuery.value?.toLowerCase()
     if(!query) return customers.value || []
-    console.log(query)
     return customers.value.filter(customer => {
       return customer.first_name?.toLowerCase().includes(query)
         || customer.last_name?.toLowerCase().includes(query)
