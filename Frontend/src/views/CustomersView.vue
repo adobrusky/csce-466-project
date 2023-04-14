@@ -9,7 +9,7 @@
           <td colspan="3">
             <input type="text" placeholder="Search customer" class="input" v-model="searchQuery" />
           </td>
-          <td colspan="5"></td>
+          <td colspan="6"></td>
         </tr>
         <tr>
           <th>Id</th>
@@ -20,18 +20,49 @@
           <th>Country</th>
           <th>Postal</th>
           <th>Email</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="customer in filteredCustomers" :key="customer.id">
           <td>{{ customer.id }}</td>
-          <td>{{ customer.first_name }} {{ customer.last_name }}</td>
-          <td>{{ customer.address }}</td>
-          <td>{{ customer.city }}</td>
-          <td>{{ customer.state }}</td>
-          <td>{{ customer.country }}</td>
-          <td>{{ customer.postal_code }}</td>
-          <td>{{ customer.email }}</td>
+          <td>
+            <input class="input is-small" v-model="edited.first_name" v-if="edited && edited.id === customer.id" />
+            <span v-else>{{ customer.first_name }}</span>
+            <input class="input is-small" v-model="edited.last_name" v-if="edited && edited.id === customer.id" />
+            <span v-else>{{ customer.last_name }}</span>
+          </td>
+          <td>
+            <input class="input is-small" v-model="edited.address" v-if="edited && edited.id === customer.id" />
+            <span v-else>{{ customer.address }}</span>
+          </td>
+          <td>
+            <input class="input is-small" v-model="edited.city" v-if="edited && edited.id === customer.id" />
+            <span v-else>{{ customer.city }}</span>
+          </td>
+          <td>
+            <input class="input is-small" v-model="edited.state" v-if="edited && edited.id === customer.id" />
+            <span v-else>{{ customer.state }}</span>
+          </td>
+          <td>
+            <input class="input is-small" v-model="edited.country" v-if="edited && edited.id === customer.id" />
+            <span v-else>{{ customer.country }}</span>
+          </td>
+          <td>
+            <input class="input is-small" v-model="edited.postal_code" v-if="edited && edited.id === customer.id" />
+            <span v-else>{{ customer.postal_code }}</span>
+          </td>
+          <td>
+            <input class="input is-small" v-model="edited.email" v-if="edited && edited.id === customer.id" />
+            <span v-else>{{ customer.email }}</span>
+          </td>
+          <td>
+            <div class="buttons" v-if="edited && edited.id == customer.id">
+              <a class="button is-small is-success" @click="saveEdit">Save</a>
+              <a class="button is-small" @click="edited = undefined">Cancel</a>
+            </div>
+            <a class="button is-small" v-else @click="startEdit(customer)">Edit</a>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -40,9 +71,35 @@
 
   <script setup>
   import { ref, onBeforeMount, computed } from 'vue'
+  import InlineField from '@/components/InlineField.vue';
+  import { copyObject } from '@/js/util.js'
 
   let customers = ref()
   let searchQuery = ref()
+  let edited = ref()
+
+  function startEdit(customer) {
+    edited.value = {
+      ...customer
+    }
+  }
+  async function saveEdit() {
+    for(let customer of customers.value) {
+      if(customer.id === edited.value.id) {
+        // TODO: implement in backend
+        const response = await fetch("/api/customers", {
+          method: 'PUT',
+        })
+        if(response.ok) {
+          copyObject(edited.value, customer)
+        } else {
+          alert(response.statusText)
+        }
+        break;
+      }
+    }
+    edited.value = undefined
+  }
 
   async function getCustomers() {
     const response = await fetch("/api/customers")
