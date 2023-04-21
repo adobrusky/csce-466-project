@@ -20,6 +20,8 @@ pip install Flask SQLAlchemy mysql-connector requests pytest
 
 ## Starting the API
 
+Copy the `sample.env` file to `.env` and change the values to connect to your locally running database
+
 1. Navigate to the project root.
 2. Run the following command:
 ```
