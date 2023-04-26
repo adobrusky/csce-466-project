@@ -45,7 +45,6 @@ async function getProducts() {
 async function saveEdit() {
   for(let product of products.value) {
     if(product.id === edited.value.id) {
-      // TODO: implement in backend
       const response = await fetch(`/api/inventory`, {
         headers: {"Content-Type": "application/json"},
         method: 'POST',
@@ -65,7 +64,6 @@ async function saveEdit() {
 async function deleteEdit() {
   for(let product of products.value) {
     if(product.id === edited.value.id) {
-      // TODO: implement in backend
       const response = await fetch(`/api/inventory/${edited.value.id}`, {
         method: 'DELETE'
       })
@@ -81,7 +79,6 @@ async function deleteEdit() {
 }
 
 async function createProduct() {
-  // TODO: implement in backend
   const response = await fetch(`/api/inventory`, {
     headers: {"Content-Type": "application/json"},
     method: 'POST',

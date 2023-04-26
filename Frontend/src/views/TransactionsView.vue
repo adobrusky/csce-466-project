@@ -47,4 +47,64 @@
       </tbody>
     </table>
   </div>
-  </template>
+</template>
+
+<script>
+async function saveEdit() {
+  for(let transaction of transactions.value) {
+    if(transaction.id === edited.value.id) {
+      const response = await fetch(`/api/orders`, {
+        headers: {"Content-Type": "application/json"},
+        method: 'POST',
+        body: JSON.stringify(edited.value)
+      })
+      if(response.ok) {
+        copyObject(edited.value, transaction)
+      } else {
+        alert(response.statusText)
+      }
+      break;
+    }
+  }
+  edited.value = undefined
+}
+
+async function deleteEdit() {
+  for(let transaction of transactions.value) {
+    if(transaction.id === edited.value.id) {
+      const response = await fetch(`/api/orders/${edited.value.id}`, {
+        method: 'DELETE'
+      })
+      if(response.ok) {
+        await getTransactions()
+      } else {
+        alert(response.statusText)
+      }
+      break;
+    }
+  }
+  edited.value = undefined
+}
+
+async function createTransaction() {
+  const response = await fetch(`/api/orders`, {
+    headers: {"Content-Type": "application/json"},
+    method: 'POST',
+    body: JSON.stringify(created.value)
+  })
+  if(response.ok) {
+    await getTransactions()
+  } else {
+    alert(response.statusText)
+  }
+  created.value = undefined
+}
+
+async function getTransactions() {
+  const response = await fetch("/api/orders")
+  if(response.ok) {
+    const json = await response.json()
+    transactions.value = json
+  }
+}
+</script>

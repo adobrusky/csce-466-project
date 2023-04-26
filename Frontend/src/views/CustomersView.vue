@@ -89,7 +89,6 @@ function startEdit(customer) {
 async function saveEdit() {
   for(let customer of customers.value) {
     if(customer.id === edited.value.id) {
-      // TODO: implement in backend
       const response = await fetch(`/api/customers`, {
         headers: {"Content-Type": "application/json"},
         method: 'POST',
@@ -109,7 +108,6 @@ async function saveEdit() {
 async function deleteEdit() {
   for(let customer of customers.value) {
     if(customer.id === edited.value.id) {
-      // TODO: implement in backend
       const response = await fetch(`/api/customers/${edited.value.id}`, {
         method: 'DELETE'
       })
@@ -125,7 +123,6 @@ async function deleteEdit() {
 }
 
 async function createCustomer() {
-  // TODO: implement in backend
   const response = await fetch(`/api/customers`, {
     headers: {"Content-Type": "application/json"},
     method: 'POST',
