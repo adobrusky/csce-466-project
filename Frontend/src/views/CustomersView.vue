@@ -7,7 +7,7 @@
       <thead>
         <tr>
           <td colspan="3">
-            <input type="text" placeholder="Search customer" class="input" v-model="searchQuery" />
+              <input type="text" placeholder="Search customer" class="input" v-model="searchQuery" />
           </td>
           <td colspan="6"></td>
         </tr>
@@ -59,6 +59,7 @@
           <td>
             <div class="buttons" v-if="edited && edited.id == customer.id">
               <a class="button is-small is-success" @click="saveEdit">Save</a>
+              <a class="button is-small is-danger" @click="deleteEdit">Delete</a>
               <a class="button is-small" @click="edited = undefined">Cancel</a>
             </div>
             <a class="button is-small" v-else @click="startEdit(customer)">Edit</a>
@@ -69,61 +70,96 @@
   </div>
   </template>
 
-  <script setup>
-  import { ref, onBeforeMount, computed } from 'vue'
-  import InlineField from '@/components/InlineField.vue';
-  import { copyObject } from '@/js/util.js'
+<script setup>
 
-  let customers = ref()
-  let searchQuery = ref()
-  let edited = ref()
+import { ref, onBeforeMount, computed } from 'vue'
+import InlineField from '@/components/InlineField.vue';
+import { copyObject } from '@/js/util.js'
 
-  function startEdit(customer) {
-    edited.value = {
-      ...customer
-    }
+let customers = ref()
+let searchQuery = ref()
+let edited = ref()
+
+function startEdit(customer) {
+  edited.value = {
+    ...customer
   }
-  async function saveEdit() {
-    for(let customer of customers.value) {
-      if(customer.id === edited.value.id) {
-        // TODO: implement in backend
-        const response = await fetch(`/api/customers`, {
-          headers: {"Content-Type": "application/json"},
-          method: 'POST',
-          body: JSON.stringify(edited.value)
-        })
-        if(response.ok) {
-          copyObject(edited.value, customer)
-        } else {
-          alert(response.statusText)
-        }
-        break;
+}
+
+async function saveEdit() {
+  for(let customer of customers.value) {
+    if(customer.id === edited.value.id) {
+      // TODO: implement in backend
+      const response = await fetch(`/api/customers`, {
+        headers: {"Content-Type": "application/json"},
+        method: 'POST',
+        body: JSON.stringify(edited.value)
+      })
+      if(response.ok) {
+        copyObject(edited.value, customer)
+      } else {
+        alert(response.statusText)
       }
-    }
-    edited.value = undefined
-  }
-
-  async function getCustomers() {
-    const response = await fetch("/api/customers")
-    if(response.ok) {
-      const json = await response.json()
-      customers.value = json
+      break;
     }
   }
+  edited.value = undefined
+}
 
-  const filteredCustomers = computed(() => {
-    const query = searchQuery.value?.toLowerCase()
-    if(!query) return customers.value || []
-    return customers.value.filter(customer => {
-      return customer.first_name?.toLowerCase().includes(query)
-        || customer.last_name?.toLowerCase().includes(query)
-        || customer.email?.toLowerCase().includes(query)
-        || customer.address?.toLowerCase().includes(query)
-    })
+async function deleteEdit() {
+  for(let customer of customers.value) {
+    if(customer.id === edited.value.id) {
+      // TODO: implement in backend
+      const response = await fetch(`/api/customers/${edited.value.id}`, {
+        method: 'DELETE'
+      })
+      if(response.ok) {
+        await getCustomers()
+      } else {
+        alert(response.statusText)
+      }
+      break;
+    }
+  }
+  edited.value = undefined
+}
+
+async function createCustomer() {
+  // TODO: implement in backend
+  const response = await fetch(`/api/customers`, {
+    headers: {"Content-Type": "application/json"},
+    method: 'POST',
+    body: JSON.stringify(created.value)
   })
+  if(response.ok) {
+    await getCustomers()
+  } else {
+    alert(response.statusText)
+  }
+  created.value = undefined
+}
 
-  onBeforeMount(() => {
-    getCustomers()
+async function getCustomers() {
+  const response = await fetch("/api/customers")
+  if(response.ok) {
+    const json = await response.json()
+    customers.value = json
+  }
+}
+
+const filteredCustomers = computed(() => {
+  const query = searchQuery.value?.toLowerCase()
+  if(!query) return customers.value || []
+  return customers.value.filter(customer => {
+    return customer.first_name?.toLowerCase().includes(query)
+      || customer.last_name?.toLowerCase().includes(query)
+      || customer.email?.toLowerCase().includes(query)
+      || customer.address?.toLowerCase().includes(query)
   })
+})
 
-  </script>
+onBeforeMount(() => {
+  getCustomers()
+})
+
+</script>
