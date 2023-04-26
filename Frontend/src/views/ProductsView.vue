@@ -42,6 +42,59 @@ async function getProducts() {
   }
 }
 
+async function saveEdit() {
+  for(let product of products.value) {
+    if(product.id === edited.value.id) {
+      // TODO: implement in backend
+      const response = await fetch(`/api/inventory`, {
+        headers: {"Content-Type": "application/json"},
+        method: 'POST',
+        body: JSON.stringify(edited.value)
+      })
+      if(response.ok) {
+        copyObject(edited.value, product)
+      } else {
+        alert(response.statusText)
+      }
+      break;
+    }
+  }
+  edited.value = undefined
+}
+
+async function deleteEdit() {
+  for(let product of products.value) {
+    if(product.id === edited.value.id) {
+      // TODO: implement in backend
+      const response = await fetch(`/api/inventory/${edited.value.id}`, {
+        method: 'DELETE'
+      })
+      if(response.ok) {
+        await getProducts()
+      } else {
+        alert(response.statusText)
+      }
+      break;
+    }
+  }
+  edited.value = undefined
+}
+
+async function createProduct() {
+  // TODO: implement in backend
+  const response = await fetch(`/api/inventory`, {
+    headers: {"Content-Type": "application/json"},
+    method: 'POST',
+    body: JSON.stringify(created.value)
+  })
+  if(response.ok) {
+    await getProducts()
+  } else {
+    alert(response.statusText)
+  }
+  created.value = undefined
+}
+
 onBeforeMount(() => {
   getProducts()
 })
