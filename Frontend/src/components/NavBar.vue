@@ -15,7 +15,7 @@
       <router-link to="/transactions" class="navbar-item">Transactions</router-link>
     </div>
 
-    <div class="navbar-end">
+    <!-- <div class="navbar-end">
       <div class="navbar-item">
         <div class="buttons">
           <a class="button is-primary">
@@ -26,7 +26,7 @@
           </router-link>
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
 </nav>
 </template>
