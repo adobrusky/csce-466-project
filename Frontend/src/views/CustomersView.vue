@@ -87,8 +87,10 @@
     for(let customer of customers.value) {
       if(customer.id === edited.value.id) {
         // TODO: implement in backend
-        const response = await fetch("/api/customers", {
-          method: 'PUT',
+        const response = await fetch(`/api/customers`, {
+          headers: {"Content-Type": "application/json"},
+          method: 'POST',
+          body: JSON.stringify(edited.value)
         })
         if(response.ok) {
           copyObject(edited.value, customer)

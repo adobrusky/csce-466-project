@@ -1,5 +1,6 @@
 from flask import jsonify, request, Flask
 from flask.json import JSONEncoder
+from flask_cors import CORS
 from datetime import date
 from Database.data_helper import DataHelper
 from Database.data_models import Order, Inventory, Customer
@@ -24,6 +25,7 @@ class CustomJSONEncoder(JSONEncoder):
 
 # Basic API setup
 app = Flask(__name__)
+CORS(app)
 app.json_encoder = CustomJSONEncoder
 app.config["DEBUG"] = True
 
@@ -73,6 +75,7 @@ def deserialize(dictionary, class_name):
 #region Get all endpoints
 
 @app.route('/customers', methods=['GET'])
+
 def customers_all():
   lst_customers = data_helper.get_customers()
   results = []
@@ -81,6 +84,7 @@ def customers_all():
   return jsonify(results)
 
 @app.route('/inventory', methods=['GET'])
+
 def inventory_all():
   lst_inventory = data_helper.get_inventory()
   results = []
@@ -89,6 +93,7 @@ def inventory_all():
   return jsonify(results)
 
 @app.route('/orders', methods=['GET'])
+
 def orders_all():
   lst_orders = data_helper.get_orders()
   results = []
@@ -102,6 +107,7 @@ def orders_all():
 #region Get one endpoints
 
 @app.route('/orders/<id>', methods=['GET'])
+
 def orders_getone(id):
   if id is not None:
     order = data_helper.orders_getone(id)
@@ -111,6 +117,7 @@ def orders_getone(id):
     return jsonify(serialize(Order(success=False, message="No order ID provided")))
 
 @app.route('/customers/<id>', methods=['GET'])
+
 def customers_getone(id):
   if id is not None:
     customer = data_helper.customers_getone(id)
@@ -120,6 +127,7 @@ def customers_getone(id):
     return jsonify(serialize(Customer(success=False, message="No customer ID provided")))
 
 @app.route('/inventory/<id>', methods=['GET'])
+
 def inventory_getone(id):
   if id is not None:
     inventory = data_helper.inventory_getone(id)
@@ -133,6 +141,7 @@ def inventory_getone(id):
 #region Save (create/update) endpoints
 
 @app.route('/orders', methods=['POST'])
+
 def orders_save():
   order = deserialize(request.json, Order)
   order = data_helper.orders_save(order, request.json.get('inventory'))
@@ -140,6 +149,7 @@ def orders_save():
   return jsonify(order_dict)
 
 @app.route('/customers', methods=['POST'])
+
 def customers_save():
   customer = deserialize(request.json, Customer)
   customer = data_helper.customers_save(customer)
@@ -147,6 +157,7 @@ def customers_save():
   return jsonify(customer_dict)
 
 @app.route('/inventory', methods=['POST'])
+
 def inventory_save():
   inventory = deserialize(request.json, Inventory)
   inventory = data_helper.inventory_save(inventory)
@@ -158,6 +169,7 @@ def inventory_save():
 #region Delete endpoints
 
 @app.route('/customers/<id>', methods=['DELETE'])
+
 def customers_delete(id):
   if id is not None:
     customer = data_helper.customers_delete(id)
@@ -167,6 +179,7 @@ def customers_delete(id):
     return jsonify(serialize(Customer(success=False, message="No customer ID provided")))
 
 @app.route('/inventory/<id>', methods=['DELETE'])
+
 def inventory_delete(id):
   if id is not None:
     inventory = data_helper.inventory_delete(id)
@@ -176,6 +189,7 @@ def inventory_delete(id):
     return jsonify(serialize(Inventory(success=False, message="No inventory ID provided")))
 
 @app.route('/orders/<id>', methods=['DELETE'])
+
 def orders_delete(id):
   if id is not None:
     order = data_helper.orders_delete(id)
@@ -189,6 +203,7 @@ def orders_delete(id):
 #region Search endpoints
 
 @app.route('/inventory/search', methods=['POST'])
+
 def inventory_search():
   search = deserialize(request.json, Search)
   if not search.success:
@@ -200,6 +215,7 @@ def inventory_search():
   return jsonify(results)
 
 @app.route('/customers/search', methods=['POST'])
+
 def customers_search():
   search = deserialize(request.json, Search)
   if not search.success:
@@ -211,6 +227,7 @@ def customers_search():
   return jsonify(results)
 
 @app.route('/orders/search', methods=['POST'])
+
 def orders_search():
   search = deserialize(request.json, Search)
   if not search.success:
