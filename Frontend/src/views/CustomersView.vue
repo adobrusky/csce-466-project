@@ -106,6 +106,7 @@ async function saveEdit() {
 }
 
 async function deleteEdit() {
+  if(!confirm("Are you sure you want to delete this customer?")) return
   for(let customer of customers.value) {
     if(customer.id === edited.value.id) {
       const response = await fetch(`/api/customers/${edited.value.id}`, {

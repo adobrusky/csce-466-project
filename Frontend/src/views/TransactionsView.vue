@@ -3,11 +3,11 @@
     <h2 class="title is-2">Transactions</h2>
     <p class="subtitle is-4">Subtitle</p>
     <br>
-    <table class="table is-fullwidth">
+    <table class="table">
       <thead>
         <tr>
           <td colspan="3">
-            <input type="text" placeholder="Search customer" class="input" v-model="searchQuery" />
+            <input type="text" placeholder="Search transaction" class="input" v-model="searchQuery" />
           </td>
           <td colspan="6"></td>
         </tr>
@@ -15,33 +15,47 @@
           <th>Id</th>
           <th>Customer Id</th>
           <th>Date</th>
-          <th>Product</th>
+          <th>Product ID</th>
+          <th>Quanity</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
-        <template v-for="transaction in filteredTransactions" :key="transaction.id">
+        <!-- eslint-disable vue/no-v-for-template-key : valid for vue3 -->
+        <template v-for="transaction of transactions" :key="transaction.id">
           <tr>
             <td>{{ transaction.id }}</td>
             <td>
+              <input class="input is-small" v-model="edited.customer_id" v-if="edited && edited.id === transaction.id" />
+              <span v-else>{{ transaction.customer_id }}</span>
+            </td>
+            <td>
               <input class="input is-small" v-model="edited.date" v-if="edited && edited.id === transaction.id" />
-              <span v-else>{{ transaction.first_name }}</span>
+              <span v-else>{{ transaction.date }}</span>
+            </td>
+            <td></td>
+            <td></td>
+            <td>
+              <div class="buttons" v-if="edited && edited.id == transaction.id">
+                <a class="button is-small is-success" @click="saveEdit">Save</a>
+                <a class="button is-small is-danger" @click="deleteEdit">Delete</a>
+                <a class="button is-small" @click="edited = undefined">Cancel</a>
+              </div>
+              <a class="button is-small" v-else @click="startEdit(transaction)">Edit</a>
             </td>
           </tr>
-          <tr>
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Product Id</th>
-                  <th>Quanity</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="order in transaction.orders" :key="order.id">
-                  <td>{{ order.product_id }}</td>
-                  <td>{{ order.quantity }}</td>
-                </tr>
-              </tbody>
-            </table>
+          <tr v-for="(order, i) in transaction.inventory" :key="order.id">
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+              <input class="input is-small" v-model="edited.inventory[i].inventory_id" v-if="edited && edited.id === transaction.id" />
+              <span v-else>{{ order.inventory_id }}</span>
+            </td>
+            <td>
+              <input class="input is-small" v-model="edited.inventory[i].quantity" v-if="edited && edited.id === transaction.id" />
+              <span v-else>{{ order.quantity }}</span>
+            </td>
           </tr>
         </template>
       </tbody>
@@ -52,7 +66,6 @@
 <script setup>
 
 import { ref, onBeforeMount, computed } from 'vue'
-import InlineField from '@/components/InlineField.vue';
 import { copyObject } from '@/js/util.js'
 
 let transactions = ref()
@@ -79,6 +92,7 @@ async function saveEdit() {
 }
 
 async function deleteEdit() {
+  if(!confirm("Are you sure you want to delete this transaction?")) return
   for(let transaction of transactions.value) {
     if(transaction.id === edited.value.id) {
       const response = await fetch(`/api/orders/${edited.value.id}`, {
@@ -116,4 +130,14 @@ async function getTransactions() {
     transactions.value = json
   }
 }
+
+function startEdit(order) {
+  edited.value = {
+    ...order
+  }
+}
+
+onBeforeMount(() => {
+  getTransactions()
+})
 </script>
