@@ -49,7 +49,16 @@
   </div>
 </template>
 
-<script>
+<script setup>
+
+import { ref, onBeforeMount, computed } from 'vue'
+import InlineField from '@/components/InlineField.vue';
+import { copyObject } from '@/js/util.js'
+
+let transactions = ref()
+let searchQuery = ref()
+let edited = ref()
+
 async function saveEdit() {
   for(let transaction of transactions.value) {
     if(transaction.id === edited.value.id) {

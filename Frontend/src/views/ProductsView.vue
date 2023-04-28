@@ -30,9 +30,14 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount } from 'vue'
+
+import { ref, onBeforeMount, computed } from 'vue'
+import InlineField from '@/components/InlineField.vue';
+import { copyObject } from '@/js/util.js'
 
 let products = ref()
+let searchQuery = ref()
+let edited = ref()
 
 async function getProducts() {
   const response = await fetch("/api/inventory")
