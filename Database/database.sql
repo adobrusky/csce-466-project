@@ -32,7 +32,9 @@ CREATE TABLE orders (
   date date,
   success boolean,
   message varchar(256),
-  FOREIGN KEY (customer_id) REFERENCES customers (id),
+  FOREIGN KEY (customer_id)
+    REFERENCES customers(id)
+    ON DELETE CASCADE,
   PRIMARY KEY (id)
 );
 
@@ -42,8 +44,12 @@ CREATE TABLE inventory_orders (
   quantity int(11),
   success boolean,
   message varchar(256),
-  FOREIGN KEY (inventory_id) REFERENCES inventory (id),
-  FOREIGN KEY (order_id) REFERENCES orders (id),
+  FOREIGN KEY (inventory_id)
+    REFERENCES inventory (id)
+    ON DELETE CASCADE,
+  FOREIGN KEY (order_id)
+    REFERENCES orders (id)
+    ON DELETE CASCADE,
   PRIMARY KEY (inventory_id, order_id)
 );
 
