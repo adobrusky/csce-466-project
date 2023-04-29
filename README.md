@@ -15,7 +15,7 @@
 
 1. Run the following command:
 ```
-pip install Flask SQLAlchemy mysql-connector requests pytest
+pip install Flask SQLAlchemy mysql-connector requests pytest python-dotenv flask-cors
 ```
 
 ## Starting the API
