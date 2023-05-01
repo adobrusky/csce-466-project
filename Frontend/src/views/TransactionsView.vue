@@ -1,9 +1,9 @@
 <template>
   <div class="container">
     <h2 class="title is-2">Transactions</h2>
-    <p class="subtitle is-4">Subtitle</p>
+    <p class="subtitle is-4">Viewing {{  transactions.length }} transactions</p>
     <br>
-    <table class="table">
+    <table class="table is-fullwidth">
       <thead>
         <tr>
           <td colspan="3">
@@ -68,7 +68,7 @@
 import { ref, onBeforeMount, computed } from 'vue'
 import { copyObject } from '@/js/util.js'
 
-let transactions = ref()
+let transactions = ref([])
 let searchQuery = ref()
 let edited = ref()
 

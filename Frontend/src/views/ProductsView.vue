@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <h2 class="title is-2">Products</h2>
-    <p class="subtitle is-4">Subtitle</p>
+    <p class="subtitle is-4">Viewing {{ products.length }} products</p>
     <br>
     <table class="table">
       <thead>
@@ -19,6 +19,22 @@
         </tr>
       </thead>
       <tbody>
+        <tr>
+          <td>
+          </td>
+          <td>
+            <input class="input is-small" v-model="newProduct.name"/>
+          </td>
+          <td>
+            <input class="input is-small" v-model="newProduct.price"/>
+          </td>
+          <td>
+            <div class="buttons">
+              <a class="button is-small is-success" @click="createProduct" :disabled="canSave?undefined:true">Create</a>
+              <a class="button is-small" @click="newProduct = {}">Cancel</a>
+            </div>
+          </td>
+        </tr>
         <tr v-for="product in filteredProducts" :key="product.id">
           <td>{{ product.id }}</td>
           <td>
@@ -49,9 +65,10 @@ import { ref, onBeforeMount, computed } from 'vue'
 import InlineField from '@/components/InlineField.vue';
 import { copyObject } from '@/js/util.js'
 
-let products = ref()
+let products = ref([])
 let searchQuery = ref()
 let edited = ref()
+let newProduct = ref({})
 
 async function getProducts() {
   const response = await fetch("/api/inventory")
@@ -103,14 +120,14 @@ async function createProduct() {
   const response = await fetch(`/api/inventory`, {
     headers: {"Content-Type": "application/json"},
     method: 'POST',
-    body: JSON.stringify(created.value)
+    body: JSON.stringify(newProduct.value)
   })
   if(response.ok) {
     await getProducts()
+    newProduct.value = {}
   } else {
     alert(response.statusText)
   }
-  created.value = undefined
 }
 
 

@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <h2 class="title is-2">Customers</h2>
-    <p class="subtitle is-4">Subtitle</p>
+    <p class="subtitle is-4">Viewing {{  customers.length }} customers</p>
     <br>
     <table class="table is-fullwidth">
       <thead>
@@ -24,6 +24,37 @@
         </tr>
       </thead>
       <tbody>
+        <tr>
+          <td></td>
+          <td>
+            <input class="input is-small" v-model="newCustomer.first_name"/>
+            <input class="input is-small" v-model="newCustomer.last_name"/>
+          </td>
+          <td>
+            <input class="input is-small" v-model="newCustomer.address"/>
+          </td>
+          <td>
+            <input class="input is-small" v-model="newCustomer.city"/>
+          </td>
+          <td>
+            <input class="input is-small" v-model="newCustomer.state"/>
+          </td>
+          <td>
+            <input class="input is-small" v-model="newCustomer.country"/>
+          </td>
+          <td>
+            <input class="input is-small" v-model="newCustomer.postal_code"/>
+          </td>
+          <td>
+            <input class="input is-small" v-model="newCustomer.email"/>
+          </td>
+          <td>
+            <div class="buttons">
+              <a class="button is-small is-success" @click="createCustomer" :disabled="canSave?undefined:true">Create</a>
+              <a class="button is-small" @click="newCustomer = {}">Cancel</a>
+            </div>
+          </td>
+        </tr>
         <tr v-for="customer in filteredCustomers" :key="customer.id">
           <td>{{ customer.id }}</td>
           <td>
@@ -73,12 +104,12 @@
 <script setup>
 
 import { ref, onBeforeMount, computed } from 'vue'
-import InlineField from '@/components/InlineField.vue';
-import { copyObject } from '@/js/util.js'
+import { copyObject, hasValues } from '@/js/util.js'
 
-let customers = ref()
+let customers = ref([])
 let searchQuery = ref()
 let edited = ref()
+let newCustomer = ref({})
 
 function startEdit(customer) {
   edited.value = {
@@ -123,18 +154,22 @@ async function deleteEdit() {
   edited.value = undefined
 }
 
+const canSave = computed(() => {
+  return hasValues(newCustomer.value, ["first_name", "last_name", "address", "email", "city", "state", "country", "postal_code"])
+})
+
 async function createCustomer() {
   const response = await fetch(`/api/customers`, {
     headers: {"Content-Type": "application/json"},
     method: 'POST',
-    body: JSON.stringify(created.value)
+    body: JSON.stringify(newCustomer.value)
   })
   if(response.ok) {
     await getCustomers()
+    newCustomer.value = {}
   } else {
     alert(response.statusText)
   }
-  created.value = undefined
 }
 
 async function getCustomers() {
