@@ -62,8 +62,11 @@
 <script setup>
 
 import { ref, onBeforeMount, computed } from 'vue'
-import InlineField from '@/components/InlineField.vue';
-import { copyObject } from '@/js/util.js'
+import { copyObject, hasValues } from '@/js/util.js'
+
+const canSave = computed(() => {
+  return hasValues(newCustomer.value, ["name", "price"])
+})
 
 let products = ref([])
 let searchQuery = ref()

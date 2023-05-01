@@ -21,6 +21,39 @@
         </tr>
       </thead>
       <tbody>
+        <tr>
+          <td></td>
+          <td>
+            <input class="input is-small" v-model="newTransact.customer_id" />
+          </td>
+          <td>
+            {{ newTransact.date }}
+          </td>
+          <td>
+            <input class="input is-small" v-model="newOrder.inventory_id" />
+          </td>
+          <td>
+            <input class="input is-small" v-model="newOrder.quantity" />
+          </td>
+          <td>
+            <div class="buttons">
+              <a class="button is-small" @click="addProduct" :disabled="canAdd?undefined:true">Add Product</a>
+              <a class="button is-small is-success" @click="createTransaction" :disabled="canSave?undefined:true">Create</a>
+              <a class="button is-small" @click="reset">Cancel</a>
+            </div>
+          </td>
+        </tr>
+        <tr v-for="(order, i) in newTransact.inventory" :key="i">
+          <td></td>
+            <td></td>
+            <td></td>
+            <td>
+              <input class="input is-small" v-model="newTransact.inventory[i].inventory_id" />
+            </td>
+            <td>
+              <input class="input is-small" v-model="newTransact.inventory[i].quantity" />
+            </td>
+        </tr>
         <!-- eslint-disable vue/no-v-for-template-key : valid for vue3 -->
         <template v-for="transaction of transactions" :key="transaction.id">
           <tr>
@@ -33,8 +66,12 @@
               <input class="input is-small" v-model="edited.date" v-if="edited && edited.id === transaction.id" />
               <span v-else>{{ transaction.date }}</span>
             </td>
-            <td></td>
-            <td></td>
+            <td>
+
+            </td>
+            <td>
+
+            </td>
             <td>
               <div class="buttons" v-if="edited && edited.id == transaction.id">
                 <a class="button is-small is-success" @click="saveEdit">Save</a>
@@ -66,11 +103,35 @@
 <script setup>
 
 import { ref, onBeforeMount, computed } from 'vue'
-import { copyObject } from '@/js/util.js'
+import { copyObject, hasValues } from '@/js/util.js'
 
 let transactions = ref([])
 let searchQuery = ref()
 let edited = ref()
+let newTransact = ref({
+  inventory: []
+})
+let newOrder = ref({})
+
+const canSave = computed(() => {
+  return hasValues(newTransact.value, ["customer_id"])
+})
+const canAdd = computed(() => {
+  return hasValues(newOrder.value, ["inventory_id", "quantity"])
+})
+
+function reset() {
+  newTransact.value = {
+    inventory: [],
+    date: new Date().toLocaleDateString()
+  }
+}
+function addProduct() {
+  newTransact.value.inventory.push(newOrder.value)
+  newOrder.value = {}
+}
+reset()
+
 
 async function saveEdit() {
   for(let transaction of transactions.value) {
@@ -113,14 +174,14 @@ async function createTransaction() {
   const response = await fetch(`/api/orders`, {
     headers: {"Content-Type": "application/json"},
     method: 'POST',
-    body: JSON.stringify(created.value)
+    body: JSON.stringify(newTransact.value)
   })
   if(response.ok) {
     await getTransactions()
+    reset()
   } else {
     alert(response.statusText)
   }
-  created.value = undefined
 }
 
 async function getTransactions() {
