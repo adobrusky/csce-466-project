@@ -123,7 +123,7 @@ const canAdd = computed(() => {
 function reset() {
   newTransact.value = {
     inventory: [],
-    date: new Date().toLocaleDateString()
+    date: new Date().toISOString().substring(0, 10)
   }
 }
 function addProduct() {
