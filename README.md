@@ -46,6 +46,73 @@ python ./api.py
 python -m pytest ./Database/test.py
 ```
 
+## Manually Testing the User Interface
+Follow the instructions to run the program.
+
+### Test Products Page
+Navigate to the Products page if you are not currently on it.
+#### Create Product
+1. Enter in a Name and Price for your desired product.
+2. Select the green "Create" button.
+3. Ensure your new product has been entered by finding it in the displayed list.
+
+#### Edit Product
+1. Identify a product to edit.
+2. Select the white "Edit" button associated with the product you would like to edit.
+3. Alter the Name or Price as desired.
+4. Select the green "Save" button.
+5. Ensure the product you edited displays your changes.
+
+#### Delete Product
+1. Identify a product to delete.
+2. Select the white "Edit" button associated with the product you would like to delete.
+3. Select the red "Delete" button.
+4. Ensure the product you deleted is gone from the displayed list.
+
+
+### Test Customers Page
+Navigate to the Customers page if you are not currently on it.
+#### Create Customer
+1. Enter in a Name, Address, City, State, Country, Postal, and Email for your desired customer.
+2. Select the green "Create" button.
+3. Ensure your new customer has been entered by finding it in the displayed list.
+
+#### Edit Customer
+1. Identify a customer to edit.
+2. Select the white "Edit" button associated with the customer you would like to edit.
+3. Alter the Name, Address, City, State, Country, Postal, or Email as desired.
+4. Select the green "Save" button.
+5. Ensure the customer you edited displays your changes.
+
+#### Delete Customer
+1. Identify a customer to delete.
+2. Select the white "Edit" button associated with the customer you would like to delete.
+3. Select the red "Delete" button.
+4. Ensure the customer you deleted is gone from the displayed list.
+
+
+### Test Transactions Page
+Navigate to the Transactions page if you are not currently on it.
+#### Create Transaction
+1. Enter in a Customer ID, Product ID, and Quantity for your desired transaction.
+   (a) Optionally, select the "Add Product" button
+   (b) Fill in the Product ID and Quantity for the new product from (a).
+2. Select the green "Create" button.
+3. Ensure your new transaction has been entered by finding it in the displayed list.
+
+#### Edit Transaction
+1. Identify a transaction to edit.
+2. Select the white "Edit" button associated with the transaction you would like to edit.
+3. Alter the Customer ID, Date, any Product IDs, or any Quantities as desired.
+4. Select the green "Save" button.
+5. Ensure the transaction you edited displays your changes.
+
+#### Delete Transaction
+1. Identify a transaction to delete.
+2. Select the white "Edit" button associated with the transaction you would like to delete.
+3. Select the red "Delete" button.
+4. Ensure the transaction you deleted is gone from the displayed list.
+
 ## Available Endpoints
 Customers, inventory, and orders each have their own get one, get all, save, delete, and search endpoints. The `message` and `success` properties on each of the models are used to tell the consuming app whether the API call was successful or not. If an API call is unsuccessful, or an error occurs, the `message` will explain what happened.
 ### Read [GET]
