@@ -2,6 +2,10 @@
 
 ## Installation
 
+Project requires python to be installed, a mysql server and a webserver to serve the frontend. The frontend has already been compiled (see **Frontend-Build**), just needs to be dragged into webserver folder, which you can do using XAMPP (see below).
+
+If you want to compile the frontend see the README.md in the Frontend folder for more information.
+
 ### Set up the database
 
 1. This installation makes use of XAMPP. Instructions for installing XAMPP can be found [here](https://www.apachefriends.org/download.html).
@@ -37,6 +41,8 @@ python ./api.py
  * Running on http://127.0.0.1:5000 (Press CTRL+C to quit)
  * Restarting with stat
 ```
+
+You can now access the frontend through your web server and it should work.
 
 ## Testing the API
 1. Start the API before running tests. See above for more details.
